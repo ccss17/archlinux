@@ -2,7 +2,11 @@ FROM archlinux:latest
 RUN set -xe \
     && pacman-key --init \
     && pacman -Syu --noconfirm \
-    && pacman -S --noconfirm --needed base-devel git zsh vim tmux bat fd unzip lsd curl wget hexyl nodejs npm gist fzf python python-pip python-setuptools python-pipx python-pillow python-colorama bpython asciiquarium banner catimg cmatrix figlet jp2a letterpress nyancat toilet sl emacs screenfetch cowsay fortune-mod ponysay docker
+    && pacman -S --noconfirm --needed base-devel git zsh vim tmux bat fd unzip lsd curl wget hexyl nodejs npm gist fzf python python-pip python-setuptools python-pipx python-pillow python-colorama bpython asciiquarium banner catimg cmatrix figlet jp2a letterpress nyancat toilet sl emacs screenfetch cowsay fortune-mod ponysay docker inetutils
+
+RUN wget -d -c -O /usr/local/bin/ChristBASHTree "https://raw.githubusercontent.com/sergiolepore/ChristBASHTree/master/tree-EN.sh" 
+RUN chmod +x /usr/local/bin/ChristBASHTree 
+RUN npm install -g --unsafe-perm tldr
 
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
@@ -16,19 +20,27 @@ RUN set -xe \
 USER ccsss:ccsss
 WORKDIR /home/ccsss
 
-RUN cd ~ \
-    && git clone https://aur.archlinux.org/paru.git && cd paru \
+RUN cd ~ && git clone --depth=1 https://aur.archlinux.org/paru.git && cd paru \
     && makepkg -si --noconfirm \
     && paru --gendb && paru -Sua && paru -Syu --devel 
 
-RUN git clone -q https://github.com/ccss17/dotfiles && cd dotfiles \
-    && ./install.sh 
+RUN set -xe \
+    && paru -S --needed --noconfirm gotop-bin ctree unimatrix-git pipes.sh arttime-git ascii-draw ascii-rain-git bash-pipes boxes cbonsai durdraw neo-matrix tty-clock mkinitcpio-archlogo alsi archey3
+
+RUN pipx install bpytop numpy 
+
+RUN wget -q -O install_ohmyzsh.sh https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh \
+    && sh install_ohmyzsh.sh --unattended \
+    && git clone --depth=1 -q https://github.com/zsh-users/zsh-autosuggestions \
+        ~/.oh-my-zsh/plugins/zsh-autosuggestions \
+    && git clone --depth=1 -q https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
 
 RUN mkdir -p ~/miniconda3 \
     && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh \
     && bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3 \
-    && rm ~/miniconda3/miniconda.sh \
-    && echo "source ~/miniconda3/bin/activate && conda deactivate" >> .zshrc 
+    && rm ~/miniconda3/miniconda.sh 
 
+RUN git clone --depth=1 https://github.com/ccss17/dotfiles 
+RUN cd dotfiles && ./install.sh 
 
 CMD /usr/bin/zsh
