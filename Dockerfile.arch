@@ -1,0 +1,6 @@
+FROM archbase:latest
+
+RUN git clone --depth=1 https://github.com/ccss17/dotfiles 
+RUN cd dotfiles && ./install.sh 
+
+CMD /usr/bin/zsh
